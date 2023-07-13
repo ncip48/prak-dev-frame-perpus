@@ -4,10 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Models\RakBuku;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Response;
 
 class RakBukuController extends Controller
 {
-    private function pre($arr=[]){
+    private function pre($arr = [])
+    {
         echo '<pre>';
         print_r($arr);
         echo '</pre>';
@@ -30,7 +32,7 @@ class RakBukuController extends Controller
     {
         $data['store'] = 'Input';
         $data['rak'] = new RakBuku();
-        $data['action'] = url('rak_buku');
+        $data['action'] = url('rak_buku/ajax_store');
         return view('rak_buku.form', $data);
     }
 
@@ -43,18 +45,23 @@ class RakBukuController extends Controller
         $rak->nama = $request->input('nama');
         $rak->lokasi = $request->input('lokasi');
         $rak->keterangan = $request->input('keterangan');
-        
+
         $validated = $request->validate([
             'nama' => 'required|max:50',
             'lokasi' => 'required|max:50'
+        ], [
+            'nama.required' => 'Nama wajib diisi',
+            'nama.max' => 'Nama harus tidak lebih dari 50 karakter',
+            'lokasi.required' => 'Lokasi wajib diisi',
+            'lokasi.max' => 'Lokias harus tidak lebih dari 50 karakter'
         ]);
 
-        if($validated){
+        if ($validated) {
             $request->session()->put('rak', $rak);
             $request->session()->flash('pesan', 'Data telah berhasil disimpan');
             $rak->save();
         }
-        
+
         return redirect('/rak_buku');
     }
 
@@ -88,13 +95,18 @@ class RakBukuController extends Controller
         $validated = $request->validate([
             'nama' => 'required|max:50',
             'lokasi' => 'required|max:50'
+        ], [
+            'nama.required' => 'Nama wajib diisi',
+            'nama.max' => 'Nama harus tidak lebih dari 50 karakter',
+            'lokasi.required' => 'Lokasi wajib diisi',
+            'lokasi.max' => 'Lokias harus tidak lebih dari 50 karakter'
         ]);
 
-        if($validated){
+        if ($validated) {
             $rakBuku->save();
             $request->session()->flash('pesan', 'Data telah berhasil diubah');
         }
-        
+
         return redirect('/rak_buku');
     }
 
@@ -106,5 +118,30 @@ class RakBukuController extends Controller
         $rakBuku->delete();
         $request->session()->flash('pesan', 'Data telah berhasil dihapus');
         return redirect('/rak_buku');
+    }
+
+    public function store_ajax(Request $request)
+    {
+        $rak = new RakBuku();
+        $rak->nama = $request->input('nama');
+        $rak->lokasi = $request->input('lokasi');
+        $rak->keterangan = $request->input('keterangan');
+        $validated = $request->validate([
+            'nama' => 'required|max:50',
+            'lokasi' => 'required|max:50'
+        ], [
+            'nama.required' => 'Nama wajib diisi',
+            'nama.max' => 'Nama harus tidak lebih dari 50 karakter',
+            'lokasi.required' => 'Lokasi wajib diisi',
+            'lokasi.max' => 'Lokias harus tidak lebih dari 50 karakter'
+        ]);
+
+        if ($validated) {
+            $request->session()->put('rak', $rak);
+            $request->session()->flash('pesan', 'Data telah berhasil disimpan');
+            $rak->save();
+        }
+        $json = Response::json($rak);
+        return $json;
     }
 }
